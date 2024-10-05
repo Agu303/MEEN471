@@ -1,5 +1,4 @@
 #Alvaro Guerra
-#9/20/24
 #HW3
 
 import numpy as np
@@ -111,10 +110,18 @@ print("\n")
 
 #a)
 #[0,60,90,60]s
+
+
+load_list = np.array([[1400],
+                      [-800],
+                      [400],
+                      [0],
+                      [0],
+                      [0]
+                     ])
 thickness = 0.005
 ply_num = 7
 ply_angle_dict = {1:0, 2:60, 3:90, 4:60, 5:60, 6:90, 7:60, 8:0}
-ply_zdist = {1:-0.02,2:-0.015,3:-0.01, 4:0,5:0.005,6:0.01,7:0.015,8:0.02}
 M = 3
 
 e11_mat =  e11[M-1,0]     
@@ -130,9 +137,9 @@ T_eps_list = []
 T_list = []
 Q_list = []
 Q_bar_list = []
-A_list = []
-B_list = []
-D_list = []
+A_list = np.zeros((3, 3))
+B_list = np.zeros((3, 3))
+D_list = np.zeros((3, 3))
 
 for j in ply_angle_dict:
     z_uppersurf = z0 + j*thickness
@@ -154,33 +161,21 @@ for j in ply_angle_dict:
                            [s**2, c**2, -s*c],
                            [-2*s*c, 2*s*c, (c**2)-(s**2)]
                            ]))
-    Q_list.append(np.array([[(e11_mat/(1-v12_mat*v21)), (v21*e11_mat)/(1-v12_mat*v21), 0],
+    Q =(np.array([[(e11_mat/(1-v12_mat*v21)), (v21*e11_mat)/(1-v12_mat*v21), 0],
                   [((v12_mat*e22_mat)/(1-v12_mat*v21)), ((e22_mat)/(1-v12_mat*v21)), 0],
                   [0, 0, g12_mat]
                  ]))
+    Q_list.append(Q)
     
     T_inv = np.linalg.inv(T_list[j-1])
-    Q_bar_list.append(np.matmul(T_inv, np.matmul(Q_list[j-1], T_eps_list[j-1])))
-
-    A_list.append(Q_bar*thickness)
-    B_list.append(0.5*(Q_bar_list[j-1]*((z_mid**2)-(z_mid-thickness)**2)))
-    D_list.append((1/3)*(Q_bar_list[j-1]*((z_mid**3)-(z_mid-thickness)**3)))
-
-print(A_list[3])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    Q_bar = np.matmul(T_inv, np.matmul(Q, T_eps_list[j-1])) 
+    Q_bar_list.append(Q_bar)
+     
+    
+    A_list += (Q_bar*thickness)
+    B_list += Q_bar * (0.5 * ((z_mid ** 2) - ((z_mid - thickness) ** 2)))
+    D_list += Q_bar * (1/3 * ((z_mid ** 3) - ((z_mid - thickness) ** 3)))
+print(B_list)
 
 
 
